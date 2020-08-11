@@ -23,13 +23,16 @@ const getURL = (keywords, res) => {
             }
         })
         .then(response => {
-            response.data.items.forEach(element => {
-                titlesAndLinks.push({
-                    title: element.title,
-                    link: element.link
+            if(response.data) {
+                response.data.items.forEach(element => {
+                    titlesAndLinks.push({
+                        title: element.title,
+                        link: element.link
+                    })
                 })
-            })
+            }
             res.status(200).send(titlesAndLinks)
+            titlesAndLinks=[]
         })
     } catch (err) {
         console.log(err)
