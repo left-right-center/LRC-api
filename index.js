@@ -1,23 +1,32 @@
-
-
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios')
+const getTitleAtUrl = require('get-title-at-url');
+const subjects = require("subject-extractor")
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
-// function handler(response) {
-//     response.status(200).send({
-//         received: true
-//     })
-// }
-
 app.get('/opposite', (req, res) => {
-    const { url, numLinksWanted } = req.body
+    const { url } = req.body
     console.log('request received', url)
+
+    let titleOfTheArticle = "";
+    getTitleAtUrl(url, function(title){
+        console.log(title);
+        titleOfTheArticle = title;
+    });
+
+    let keywords = ""
+    // console.log(subjects.extractAll("Password sharing could be a good thing for Netflix and Hulu"));
+    subjects.extractAll(titleOfTheArticle).forEach(element => {
+        keywords+=element
+        keywords+=" "
+    })
+    console.log(keywords)
+
     const googleAPI = "https://www.googleapis.com/customsearch/v1"
     // process stuff here.
     try {
@@ -25,23 +34,23 @@ app.get('/opposite', (req, res) => {
         params: {
             key: "AIzaSyBPKUH3mZ6cTutHvO3ID2G42lYXkjoXWzI",
             cx: "016572307064780577671:dwwtulj6stk",
-            q: "trump"
+            q: keywords
         }
         })
         .then(response => {
-            console.log(response.data.items[1])
-            let arrayOfTitles = []
-            response.data.items.forEach(element => arrayOfTitles.push(element.title))
-            res.status(200).send(arrayOfTitles)
+            // console.log(response.data.items[0])
+            let titlesAndLinks = []
+            response.data.items.forEach(element => {
+                titlesAndLinks.push({
+                    title: element.title,
+                    link: element.link
+                })
+            })
+            res.status(200).send(titlesAndLinks)
         })
     } catch (err) {
-        console.log(err.message)
         console.log(err)
-        console.error()
-        res.status(404).send({})
     }
-    
-    // https://www.googleapis.com/customsearch/v1?key=AIzaSyBPKUH3mZ6cTutHvO3ID2G42lYXkjoXWzI&cx=016572307064780577671:dwwtulj6stk&q=hot+tub&callback=hndlr
     
 })
 

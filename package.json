@@ -11,7 +11,9 @@
   "dependencies": {
     "axios": "^0.19.2",
     "cors": "^2.8.5",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "get-title-at-url": "^1.1.8",
+    "subject-extractor": "^1.0.6"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
