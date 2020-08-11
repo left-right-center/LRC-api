@@ -9,37 +9,20 @@ app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/opposite', (req, res) => {
-    const { url } = req.body
-    console.log('request received', url)
+let titlesAndLinks = []
 
-    let titleOfTheArticle = "";
-    getTitleAtUrl(url, function(title){
-        console.log(title);
-        titleOfTheArticle = title;
-    });
-
-    let keywords = ""
-    // console.log(subjects.extractAll("Password sharing could be a good thing for Netflix and Hulu"));
-    subjects.extractAll(titleOfTheArticle).forEach(element => {
-        keywords+=element
-        keywords+=" "
-    })
-    console.log(keywords)
-
+const getURL = (keywords, res) => {
     const googleAPI = "https://www.googleapis.com/customsearch/v1"
-    // process stuff here.
+    
     try {
         axios.get(googleAPI, {
-        params: {
-            key: "AIzaSyBPKUH3mZ6cTutHvO3ID2G42lYXkjoXWzI",
-            cx: "016572307064780577671:dwwtulj6stk",
-            q: keywords
-        }
+            params: {
+                key: "AIzaSyBPKUH3mZ6cTutHvO3ID2G42lYXkjoXWzI",
+                cx: "016572307064780577671:dwwtulj6stk",
+                q: keywords
+            }
         })
         .then(response => {
-            // console.log(response.data.items[0])
-            let titlesAndLinks = []
             response.data.items.forEach(element => {
                 titlesAndLinks.push({
                     title: element.title,
@@ -51,11 +34,40 @@ app.get('/opposite', (req, res) => {
     } catch (err) {
         console.log(err)
     }
+}
+
+const getKeywords = (title, res) => {
+    console.log("After title", title)
+    let keywords = ""
+    subjects.extractAll(title).forEach(element => {
+        keywords+=element
+        keywords+=" "
+    })
+    console.log(keywords)
+
+    getURL(keywords, res)
+}
+
+const getTitle = (url, res) => {
+    return Promise.resolve(getTitleAtUrl(url, function(title){
+        console.log(title);
+        getKeywords(title, res)
+    }))
+}
+
+app.get('/opposite', async (req, res) => {
+    const { url } = req.body
+    console.log(1)
+    console.log('request received', url)
+
+    try {
+        getTitle(url, res)
+    } catch (err) {
+        console.log(err)
+    }
     
 })
 
 app.listen(9000, () => {
     console.log('Listening on Port 9000')
 })
-
-
