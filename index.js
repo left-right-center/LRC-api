@@ -23,30 +23,29 @@ const getTitle = async (url) => {
 }
 
 const getLinks = async (keyword) => {
-    const promise = new Promise( async (resolve, reject) => {
+    return new Promise( async (resolve, reject) => {
 
-        const response = await newsapi.v2.everything({
-            q: keyword,
-            language: 'en',
-            sortBy: 'relevancy',
-            page: 1
-        })
-
-        if(response === undefined) {
-            reject('newsapi failed to return response')
-        }
-
-        let articles = response.articles
-        let links = []
-        articles.forEach( element => {
-            links.push({
-                title: element.title,
-                link: element.url
+        try {
+            const response = await newsapi.v2.everything({
+                q: keyword,
+                language: 'en',
+                sortBy: 'relevancy',
+                page: 1
             })
-        })
-        resolve(links)
+
+            let articles = response.articles
+            let links = []
+            articles.forEach( element => {
+                links.push({
+                    title: element.title,
+                    link: element.url
+                })
+            })
+            resolve(links)
+        } catch (err) {
+            reject(err.message)
+        }
     })
-    return promise;
 }
 
 app.get('/links', async (req, res) => {
