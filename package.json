@@ -13,6 +13,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "get-title-at-url": "^1.1.8",
+    "newsapi": "^2.4.1",
     "subject-extractor": "^1.0.6"
   },
   "devDependencies": {
