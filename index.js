@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios')
 const getTitleAtUrl = require('get-title-at-url');
-const subjects = require("subject-extractor")
 const NewsAPI = require('newsapi');
 const subject = require('subject-extractor');
 
@@ -27,13 +26,18 @@ const getLinks = async (keyword) => {
 
         try {
             const response = await newsapi.v2.everything({
-                q: keyword,
+                q: keyword, // + opposite news outlet
                 language: 'en',
                 sortBy: 'relevancy',
                 page: 1
             })
 
             let articles = response.articles
+
+            if (articles.length === 0) {
+                // 
+            }
+
             let links = []
             articles.forEach( element => {
                 links.push({
@@ -61,6 +65,20 @@ app.get('/links', async (req, res) => {
     } catch (err) {
         return res.status(404).send(err.message)
     }
+})
+
+app.get('/sources', async (req, res) => {
+    await axios.get('https://newsapi.org/v2/sources?apiKey=75ab2037750b4c56825c31ea50160ea0')
+    .then(response => {
+        console.log(response)
+        const sources = response.data.sources
+        const arrOfId = []
+        sources.forEach(element => {
+            arrOfId.push(element.id)
+        })
+        res.status(200).send(arrOfId)
+    })
+    
 })
 
 app.listen(9000, () => {
