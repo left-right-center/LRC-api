@@ -55,18 +55,9 @@ app.get('/links', async (req, res) => {
 
     try {
         const title = await getTitle(url)
-        if(title === undefined) {
-            console.log('An error occured', error.message)
-            return res.status(404).send(error.message)
-        }
         let keyword = subject.extract(title)
         const links = await getLinks(keyword)
-        if(links !== undefined) {
-            return res.status(200).send(links)
-        } else {
-            console.log('an error occurred', error.message)
-            return res.status(404).send(error.message)
-        }
+        return res.status(200).send(links)
         
     } catch (err) {
         return res.status(404).send(err.message)
