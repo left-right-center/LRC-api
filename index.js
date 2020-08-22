@@ -13,6 +13,41 @@ app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
+const db = {
+    left: ['cnn.com'],
+    right: ['breitbart.com', 'foxnews.com', 'foxsports.com', 'washingtontimes.com', 'nationalreview.com'],
+    center: ['bbc.com','reuters.com', 'bloomberg.com', 'usatoday.com', 'wsj.com', 'ap.org', 'thehill.com']
+}
+
+const sourceId = {
+    left: [
+        'cnn',
+        'buzzfeed',
+        'msnbc',
+        'nbc-news',
+        'cbs-news',
+        'the-washington-post',
+        'time',
+        'abc-news',
+        'politico',
+        'vice-news'
+    ],
+    center: [
+        'bbc-news',
+        'bloomberg',
+        'usa-today',
+        'the-wall-street-journal',
+        'associated-press',
+        'the-hill'	
+    ],
+    right: [
+        'fox-news',
+        'fox-sports',
+        'the-washington-times',
+        'national-review'
+    ]
+}
+
 const getTitle = async (url) => {
     return new Promise((resolve, reject) => {
         getTitleAtUrl(url, function(title) {
@@ -21,22 +56,55 @@ const getTitle = async (url) => {
     })
 }
 
-const getLinks = async (keyword) => {
+const getSources =  (url) => {
+    let wing = "nothing"
+    db.left.forEach(element => {
+        if(url.includes(element)) {
+            wing = 'left';
+        }
+    })
+    if (wing === "left") {
+        console.log(wing)
+        const result = (sourceId.right.concat(sourceId.center)).toString();
+        console.log(result)
+        return result
+    }
+
+    db.right.forEach(element => {
+        if(url.includes(element)) {
+            wing = 'right';
+        }
+    })
+    if (wing === "right") {
+        console.log(wing)
+        const result = (sourceId.left.concat(sourceId.center)).toString()
+        console.log(result)
+        return result
+    }
+
+    db.center.forEach(element => {
+        if(url.includes(element)) {
+            wing = 'center';
+        }
+    })
+    if (wing === "center") {
+        console.log(wing)
+        return sourceId.left.concat(sourceId.right);
+    }
+}
+
+const getLinks = async (keyword, url) => {
     return new Promise( async (resolve, reject) => {
 
         try {
+            const sources = getSources(url)
             const response = await newsapi.v2.everything({
                 q: keyword, // + opposite news outlet
                 language: 'en',
                 sortBy: 'relevancy',
-                page: 1
+                page: 3,
+                sources
             })
-
-            let articles = response.articles
-
-            if (articles.length === 0) {
-                // 
-            }
 
             let links = []
             articles.forEach( element => {
@@ -59,7 +127,8 @@ app.get('/links', async (req, res) => {
     try {
         const title = await getTitle(url)
         let keyword = subject.extract(title)
-        const links = await getLinks(keyword)
+        const links = await getLinks(keyword, url)
+        // TODO: sort links
         return res.status(200).send(links)
         
     } catch (err) {

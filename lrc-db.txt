@@ -1,0 +1,27 @@
+Left
+cnn
+buzzfeed
+msnbc
+nbc-news
+cbs-news
+the-washington-post
+time
+abc-news
+politico
+vice-news
+
+Center
+bbc-news	www.bbc.com
+reuters		www.reuters.com
+bloomberg	www.bloomberg.com
+usa-today	www.usatoday.com
+the-wall-street-journal	www.wsj.com
+associated-press	www.ap.org
+the-hill	www.thehill.com
+
+Right
+breitbart-news: https://www.breitbart.com
+fox-news: https://www.foxnews.com
+fox-sports: https://www.foxsports.com
+the-washington-times: https://www.washingtontimes.com
+national-review: https://www.nationalreview.com
