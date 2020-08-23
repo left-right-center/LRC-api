@@ -102,12 +102,12 @@ const getLinks = async (keyword, url) => {
                 q: keyword, // + opposite news outlet
                 language: 'en',
                 sortBy: 'relevancy',
-                page: 3,
+                pageSize: 100,
+                page: 1,
                 sources
             })
-
             let links = []
-            articles.forEach( element => {
+            response.articles.forEach( element => {
                 links.push({
                     title: element.title,
                     link: element.url
@@ -115,6 +115,7 @@ const getLinks = async (keyword, url) => {
             })
             resolve(links)
         } catch (err) {
+            console.log(err.message)
             reject(err.message)
         }
     })
@@ -127,9 +128,54 @@ app.get('/links', async (req, res) => {
     try {
         const title = await getTitle(url)
         let keyword = subject.extract(title)
+        // console.log(keyword)
         const links = await getLinks(keyword, url)
         // TODO: sort links
-        return res.status(200).send(links)
+        // Aritra KoderBoie Kode
+        let suggestions = [];
+        let prefix = [];
+        //  CASE WHERE WE DON'T GET ENOUGH RESULTS
+        if (links.length < 3) {
+            const error = "Not enough results to give 3 suggestions"
+            // this is error handling where we would then just randomly search the net for the very first 3 articles we find from any source other than the current one which user is reading
+            return res.status(404).send(error)
+        }
+        //  CASE WHERE WE ENSURE THAT WE HAVE AT LEAST MORE THAN 1 RESULT
+        if (links.length > 0) {
+            suggestions.push(links[0].link)
+            let arr = links[0].link.split("/")
+            prefix.push(arr[2])
+        }
+        // INITIALLY, WE ONLY HAVE ONE LINK, AND THUS WE HAVE NOT FOUND SECOND ARTICLE YET
+        let foundSecondArticle = false;
+        links.every(element => {
+            //IF CURRENT LINK DOES NOT INCLUDES THE PREFIX OF THE FIRST ARTICLE AND SECOND ARTICLE HAS ALSO NOT YET BEEN FOUND
+            if (!element.link.includes(prefix[0]) && !foundSecondArticle) {
+                suggestions.push(element.link)
+                let arr = element.link.split("/")
+                prefix.push(arr[2])
+                foundSecondArticle = true;
+            }
+            // IF SECOND ARTICLE FOUND, AND PREFIXES OF FIRST AND SECOND ARTICLE ARE NOT INCLUDED
+            else if (foundSecondArticle && !element.link.includes(prefix[0]) && !element.link.includes(prefix[1])) {
+                suggestions.push(element.link)
+                let arr = element.link.split("/")
+                prefix.push(arr[2])
+                return false; //THIS EXITS AN every() function WHICH IS NOT POSSIBLE IN A FOREACH
+            }
+            return true; //this lets the every() function continue
+        })
+        // in case not enough unique articles
+        if (prefix.length < 3 && links.length >=3) {
+            links.every(element => {
+                suggestions.push(element.link)
+                let arr = element.link.split("/")
+                prefix.push(arr[2])
+                if (prefix.length === 3) return false; //lets us exit every() function
+                return true;
+            })
+        }
+        return res.status(200).send(suggestions)
         
     } catch (err) {
         return res.status(404).send(err.message)
