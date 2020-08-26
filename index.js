@@ -14,7 +14,18 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
 const db = {
-    left: ['cnn.com'],
+    left: ['cnn.com',
+        'buzzfeed.com',
+        'msnbc.com',
+        'nbcnews.com',
+        'cbsnews.com',
+        'washingtonpost.com',
+        'time.com',
+        'abcnews.go.com',
+        'politico.com',
+        'vice.com',
+        'nytimes.com',
+    ],
     right: ['breitbart.com', 'foxnews.com', 'foxsports.com', 'washingtontimes.com', 'nationalreview.com'],
     center: ['bbc.com','reuters.com', 'bloomberg.com', 'usatoday.com', 'wsj.com', 'ap.org', 'thehill.com']
 }
@@ -122,8 +133,8 @@ const getLinks = async (keyword, url) => {
 }
 
 app.get('/links', async (req, res) => {
-    const { url } = req.body
-    console.log('Request received')
+    const url = req.query.url
+    console.log('Request received ', url)
 
     try {
         const title = await getTitle(url)
@@ -138,7 +149,10 @@ app.get('/links', async (req, res) => {
         if (links.length < 3) {
             const error = "Not enough results to give 3 suggestions"
             // this is error handling where we would then just randomly search the net for the very first 3 articles we find from any source other than the current one which user is reading
-            return res.status(404).send(error)
+            return res.status(404).send({
+                error,
+                links
+            })
         }
         //  CASE WHERE WE ENSURE THAT WE HAVE AT LEAST MORE THAN 1 RESULT
         if (links.length > 0) {
@@ -175,6 +189,7 @@ app.get('/links', async (req, res) => {
                 return true;
             })
         }
+        console.log('Success')
         return res.status(200).send(suggestions)
         
     } catch (err) {
